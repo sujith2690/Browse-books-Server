@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import moment from 'moment';
 
 const bookSchema = mongoose.Schema({
     userId: {
@@ -15,20 +14,24 @@ const bookSchema = mongoose.Schema({
         type: String,
         required: true,
     },
+    author: {
+        type: String,
+        required: true,
+    },
+    price: {
+        type: Number,
+        required: true,
+    },
     description: {
         type: String,
         required: true,
     },
-    image: {
+    imageUrl: {
         type: String,
         required: true,
-    },
-    date: {
-        type: String,
-        default: moment().format('DD MMMM YYYY'),
     },
 },
     { timestamps: true }
 );
-var bookModel = mongoose.model("books", bookSchema)
+const bookModel = mongoose.model("books", bookSchema)
 export default bookModel;

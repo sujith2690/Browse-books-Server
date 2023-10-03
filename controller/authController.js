@@ -4,8 +4,36 @@ import pkg from "jsonwebtoken";
 
 
 export const loginUser = async (req, res) => {
-    console.log(req.body, '----login user Details')
-}
+    try {
+        const { email, password } = req.body;
+        console.log(req.body,'------body')
+        const jwt = pkg;
+        const User = await userModel.findOne({ email: email });
+        if (User) {
+            const validity = await bcrypt.compare(password, User.password);
+            if (!validity) {
+                console.log(req.body, 'Login failed')
+                return res.status(200).json({ message: "Wrong Email or Password", success: false });
+            } else {
+                const Token = jwt.sign(
+                    {
+                        email: User.email,
+                        id: User._id,
+                    },
+                    process.env.JWT_KEY,
+                    { expiresIn: "24h" }
+                );
+                const { password, createdAt, updatedAt, __v, ...others } = User._doc
+                console.log(req.body, 'Login Success')
+                return res.status(200).json({ User: others, Token, success: true, message: "Login Success" });
+            }
+        } else {
+            return res.status(400).json({ message: "User does not Exist", success: false });
+        }
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
 
 export const signUpUser = async (req, res, next) => {
     try {
