@@ -14,7 +14,20 @@ const userSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    books: [{
+    Notifications: [
+        {
+            content: {
+                type: String,
+                required: true,
+            },
+            userId: {
+                type: mongoose.Schema.ObjectId,
+                ref: 'users',
+            },
+            date: Date,
+        },
+    ],
+    favoriteBooks: [{
         type: mongoose.Types.ObjectId,
         ref: "books",
         required: true

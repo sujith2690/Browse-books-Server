@@ -1,31 +1,52 @@
 import bookModel from "../model/bookModel.js";
+import userModel from "../model/userModel.js";
 import cloudinary from '../utils/cloudinary.js'
 
 
 export const addNewBook = async (req, res) => {
     try {
-        const userId = req.userId
-        console.log(req.body, '-------next')
-        const { title, category, description, author, price, imageUrl } = req.body
-
+        const userId = req.userId;
+        console.log(req.body, '-------next');
+        const { title, category, description, author, price, imageUrl } = req.body;
+        const userDetails = await userModel.findById(userId)
         const result = await cloudinary.uploader.upload(imageUrl, {
             upload_preset: 'BrowsBooks',
             folder: 'BrowsBooks',
-        })
-        console.log(result, '--------image upload=result')
+        });
+        console.log(result, '--------image upload=result');
         const newBook = await bookModel.create({
-            userId, title, category, description, author, price,
+            userId,
+            title,
+            category,
+            description,
+            author,
+            price,
             imageUrl: {
                 public_id: result.public_id,
-                url: result.secure_url
-            }
-        })
+                url: result.secure_url,
+            },
+        });
+
         const savedBook = await newBook.save();
-        console.log(savedBook, '------22---saved')
-        return res.status(200).json({ message: "New Book Added", savedBook, success: true });
+        console.log(savedBook, '------22---saved');
+
+        // Send a notification to all users
+        const allUsers = await userModel.find({});
+        const notificationContent = `${userDetails.name} added a new book: ${title}`;
+        for (const user of allUsers) {
+            if (user._id.toString() !== userId) {
+                user.Notifications.push({
+                    content: notificationContent,
+                    userId: userId,
+                    date: new Date(),
+                });
+                await user.save();
+            }
+        }
+        return res.status(200).json({ message: 'New Book Added', savedBook, success: true });
     } catch (error) {
         console.error('Error adding a new book:', error);
-        return res.status(400).json({ message: "error book not registered", success: false });
+        return res.status(400).json({ message: 'Error book not registered', success: false });
     }
 };
 export const updateBook = async (req, res) => {
@@ -140,6 +161,37 @@ export const deleteBook = async (req, res) => {
         console.log(bookDetails, '----deleted book')
         const deletedBook = await bookModel.findByIdAndDelete(bookId)
         res.status(200).json({ message: 'Book Deleted' });
+    } catch (error) {
+        console.error(error, 'error');
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const likeBook = async (req, res) => {
+    try {
+        console.log(req.userId, '----------id')
+        const userId = req.userId;
+        const bookId = req.params.id;
+        const [userDetails, bookDetails] = await Promise.all([
+            userModel.findById(userId),
+            bookModel.findById(bookId)
+        ]);
+        if (!userDetails) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if (!bookDetails) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
+        const bookIndex = userDetails.favoriteBooks.indexOf(bookId);
+        if (bookIndex !== -1) {
+            userDetails.favoriteBooks.splice(bookIndex, 1);
+            await userDetails.save();
+            return res.status(200).json({ message: 'Book UnLiked' });
+        } else {
+            userDetails.favoriteBooks.push(bookId);
+            await userDetails.save();
+            res.status(200).json({ message: 'Book Liked' });
+        }
     } catch (error) {
         console.error(error, 'error');
         res.status(500).json({ message: error.message });
