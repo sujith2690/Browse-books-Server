@@ -1,12 +1,16 @@
 import express from 'express'
-import { addManyBooks, addNewBook, bookCategories, bookSearch, featuredBooks, getBookDetails } from '../controller/bookController.js';
+import { addNewBook, bookCategories, bookSearch, deleteBook, featuredBooks, getBookDetails, getUserBooks, updateBook } from '../controller/bookController.js';
+import authMiddleWare from '../middleWare/authMiddleware.js';
 
 
 const bookRoute = express.Router()
 
-bookRoute.post("/addBook",addNewBook)
+bookRoute.post("/addBook",authMiddleWare,addNewBook)
+bookRoute.post("/updateBook/:id",authMiddleWare,updateBook)
+bookRoute.delete('/deleteBook/:id',authMiddleWare,deleteBook)
+bookRoute.get("/myBook",authMiddleWare,getUserBooks)
+
 bookRoute.get("/featured",featuredBooks)
-bookRoute.post("/manyBook",addManyBooks)
 bookRoute.get("/categories",bookCategories)
 
 bookRoute.get("/search",bookSearch)
