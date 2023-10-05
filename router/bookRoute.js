@@ -1,5 +1,5 @@
 import express from 'express'
-import { addNewBook, bookCategories, bookSearch, deleteBook, featuredBooks, getBookDetails, getUserBooks, likeBook, updateBook } from '../controller/bookController.js';
+import { addNewBook, allNotification, bookCategories, bookSearch, clearNotification, deleteBook, featuredBooks, getBookDetails, getUserBooks, likeBook, myFavoriteBooks, updateBook } from '../controller/bookController.js';
 import authMiddleWare from '../middleWare/authMiddleware.js';
 
 
@@ -10,6 +10,9 @@ bookRoute.post("/updateBook/:id",authMiddleWare,updateBook)
 bookRoute.delete('/deleteBook/:id',authMiddleWare,deleteBook)
 bookRoute.get("/myBook",authMiddleWare,getUserBooks)
 bookRoute.put("/likeBook/:id",authMiddleWare,likeBook)
+bookRoute.get("/myFavoriteBooks",authMiddleWare,myFavoriteBooks)
+bookRoute.get("/notion",authMiddleWare,allNotification)
+bookRoute.patch("/clearNotes",authMiddleWare,clearNotification)
 
 bookRoute.get("/featured",featuredBooks)
 bookRoute.get("/categories",bookCategories)

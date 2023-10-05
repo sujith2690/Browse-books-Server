@@ -24,6 +24,10 @@ const userSchema = mongoose.Schema({
                 type: mongoose.Schema.ObjectId,
                 ref: 'users',
             },
+            bookId: {
+                type: mongoose.Schema.ObjectId,
+                ref: 'books',
+            },
             date: Date,
         },
     ],

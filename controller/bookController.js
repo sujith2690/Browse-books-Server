@@ -6,14 +6,12 @@ import cloudinary from '../utils/cloudinary.js'
 export const addNewBook = async (req, res) => {
     try {
         const userId = req.userId;
-        console.log(req.body, '-------next');
         const { title, category, description, author, price, imageUrl } = req.body;
         const userDetails = await userModel.findById(userId)
         const result = await cloudinary.uploader.upload(imageUrl, {
             upload_preset: 'BrowsBooks',
             folder: 'BrowsBooks',
         });
-        console.log(result, '--------image upload=result');
         const newBook = await bookModel.create({
             userId,
             title,
@@ -28,7 +26,6 @@ export const addNewBook = async (req, res) => {
         });
 
         const savedBook = await newBook.save();
-        console.log(savedBook, '------22---saved');
 
         // Send a notification to all users
         const allUsers = await userModel.find({});
@@ -38,6 +35,7 @@ export const addNewBook = async (req, res) => {
                 user.Notifications.push({
                     content: notificationContent,
                     userId: userId,
+                    bookId:savedBook._id,
                     date: new Date(),
                 });
                 await user.save();
@@ -158,7 +156,6 @@ export const deleteBook = async (req, res) => {
         if (!bookDetails) {
             return res.status(404).json({ message: 'Book not found' });
         }
-        console.log(bookDetails, '----deleted book')
         const deletedBook = await bookModel.findByIdAndDelete(bookId)
         res.status(200).json({ message: 'Book Deleted' });
     } catch (error) {
@@ -169,7 +166,6 @@ export const deleteBook = async (req, res) => {
 
 export const likeBook = async (req, res) => {
     try {
-        console.log(req.userId, '----------id')
         const userId = req.userId;
         const bookId = req.params.id;
         const [userDetails, bookDetails] = await Promise.all([
@@ -186,12 +182,55 @@ export const likeBook = async (req, res) => {
         if (bookIndex !== -1) {
             userDetails.favoriteBooks.splice(bookIndex, 1);
             await userDetails.save();
-            return res.status(200).json({ message: 'Book UnLiked' });
+            return res.status(200).json({ message: 'Book UnLiked', bookDetails });
         } else {
             userDetails.favoriteBooks.push(bookId);
             await userDetails.save();
-            res.status(200).json({ message: 'Book Liked' });
+            res.status(200).json({ message: 'Book Liked', bookDetails });
         }
+    } catch (error) {
+        console.error(error, 'error');
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const myFavoriteBooks = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const userDetails = await userModel.findById(userId);
+        if (!userDetails) {
+            return res.status(404).json({ message: "User Not Found" })
+        }
+        const favoriteBooks = userDetails.favoriteBooks;
+        res.status(200).json({ favoriteBooks });
+    } catch (error) {
+        console.error(error, 'error');
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export const allNotification = async (req, res) => {
+    try {
+        const userId = req.userId
+        const userDetails = await userModel.findById(userId)
+        const notifications = userDetails.Notifications
+        res.status(200).json({ notifications })
+    } catch (error) {
+        console.error(error, 'error');
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export const clearNotification = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const userDetails = await userModel.findById(userId);
+        if (!userDetails) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        userDetails.Notifications = [];
+        await userDetails.save();
+        res.status(200).json({ message: 'Notifications cleared successfully' });
     } catch (error) {
         console.error(error, 'error');
         res.status(500).json({ message: error.message });
