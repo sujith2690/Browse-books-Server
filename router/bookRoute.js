@@ -1,6 +1,6 @@
 import express from 'express'
 import { addNewBook, allNotification, bookCategories, bookSearch, categoryBooks, clearNotification, deleteBook, featuredBooks, getBookDetails, getUserBooks, likeBook, myFavoriteBooks, updateBook } from '../controller/bookController.js';
-import authMiddleware from '../middleWare/authMiddleware.js';
+import authMiddleware from '../middle/authMiddleware.js';
 
 
 const bookRoute = express.Router()
