@@ -8,7 +8,8 @@ import otpVerificationModel from "../model/OtpVerifyModal.js";
 
 export const loginUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password } = req.body
+        console.log(req.body,'---input')
         const jwt = pkg;
         const User = await userModel.findOne({ email: email });
         if (User) {
