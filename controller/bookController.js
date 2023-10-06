@@ -5,7 +5,8 @@ import nodemailer from 'nodemailer'
 
 export const addNewBook = async (req, res) => {
     try {
-        const userId = req.userId;
+        const userId = req.userId
+        console.log(userId,'------userId')
         const { title, category, description, author, price, imageUrl } = req.body;
         const userDetails = await userModel.findById(userId)
         const result = await cloudinary.uploader.upload(imageUrl, {
