@@ -9,13 +9,11 @@ import otpVerificationModel from "../model/OtpVerifyModal.js";
 export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-        console.log(req.body, '------body')
         const jwt = pkg;
         const User = await userModel.findOne({ email: email });
         if (User) {
             const validity = await bcrypt.compare(password, User.password);
             if (!validity) {
-                console.log(req.body, 'Login failed')
                 return res.status(200).json({ message: "Wrong Email or Password", success: false });
             } else {
                 const Token = jwt.sign(
@@ -27,7 +25,6 @@ export const loginUser = async (req, res) => {
                     { expiresIn: "24h" }
                 );
                 const { password, createdAt, updatedAt, __v, ...others } = User._doc
-                console.log(req.body, 'Login Success')
                 return res.status(200).json({ User: others, Token, success: true, message: "Login Success" });
             }
         } else {
@@ -51,20 +48,6 @@ export const signUpUser = async (req, res, next) => {
             const saveUser = new userModel({ name, email, password: hashedPass, books: [] });
             const otpSend = await sendOtpVerificationEmail(saveUser);
             return res.status(200).json({ success: true, message: 'Otp Send Check your email' });
-            // await saveUser.save();
-            // const { password, createdAt, updatedAt, __v, ...others } = saveUser._doc
-            // // T O K E N
-            // const jwt = pkg
-            // const key = process.env.JWT_KEY
-            // const token = jwt.sign(
-            //     {
-            //         email: saveUser.email,
-            //         id: saveUser._id,
-            //     },
-            //     key,
-            //     { expiresIn: "24h" }
-            // );
-            // return res.status(200).json({ success: true, User: others, Token: token, message: 'SignUp Successful' });
         }
 
     } catch (error) {
@@ -94,7 +77,6 @@ const sendOtpVerificationEmail = async (user) => {
             text: "Email content",
             html: `<p>Email verification Code is <b>${otp}</b> from BrowsBooks. Ignore this mail if this is not done by you. </p>`,
         };
-        console.log(otp, '---***---sent OTP')
         const info = await transporter.sendMail(mailOptions);
 
         // Log email response
@@ -111,7 +93,6 @@ const sendOtpVerificationEmail = async (user) => {
             expiresAt: Date.now() + 3600000,
         });
         await newOtpVerification.save();
-        console.log(newOtpVerification, "---------OTP send success------");
         return {
             status: "pending",
             message: "Verification OTP email sent",
@@ -129,20 +110,14 @@ const sendOtpVerificationEmail = async (user) => {
     }
 };
 export const otpVerify = async (req, res) => {
-    console.log(req.body, '----body-----------')
-    // const userEmail = req.body.email;
-    // console.log(userEmail, "----------BODY---id");
-
     try {
         const userEmail = req.body.email
         const otp = req.body.otp
-        console.log(userEmail, '---email---------', otp)
         if (!userEmail || !otp) {
             throw new Error("Empty OTP details are not allowed");
         }
 
         const otpVerificationData = await otpVerificationModel.findOne({ email: userEmail }).sort({ createdAt: -1 })
-        console.log(otpVerificationData, "----otpVerificationData");
 
         if (!otpVerificationData) {
             return res.status(200).json({ message: "OTP verification data not found Pls Submit again", success: false });
@@ -153,9 +128,7 @@ export const otpVerify = async (req, res) => {
             await otpVerificationModel.deleteMany({ userEmail });
             return res.status(200).json({ message: "OTP has expired", success: false });
         } else {
-            console.log(otp, "---------otp", hashedOtp, "---55---hashedotp");
             const isValidOtp = bcrypt.compareSync(otp, hashedOtp);
-            console.log(isValidOtp)
             if (!isValidOtp) {
                 return res.status(200).json({ message: "Invalid OTP", success: false });
             } else {

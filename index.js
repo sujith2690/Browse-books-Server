@@ -1,12 +1,17 @@
-import express from 'express'
-import cors from 'cors'
-import dotenv from 'dotenv'
-import DBconnection from './dataBase/db.js'
-import authRoute from './router/authRoute.js'
-import bookRoute from './router/bookRoute.js'
-import bodyParser from 'body-parser'
+// Standard Library Imports
+import express from 'express';
+import bodyParser from 'body-parser';
 
-dotenv.config()
+// Third-party Library Imports
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+// Your Own Module Imports
+import DBconnection from './dataBase/db.js';
+import authRoute from './router/authRoute.js';
+import bookRoute from './router/bookRoute.js';
+
+dotenv.config();
 
 const app = express()
 app.use(cors())
@@ -16,12 +21,9 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 DBconnection();
 
-app.use('/auth',authRoute);
-app.use('/book',bookRoute);
-
-
-
+app.use('/auth', authRoute);
+app.use('/book', bookRoute);
 
 
 const PORT = process.env.PORT || 5000
-app.listen(PORT,()=>{ console.log(`App is running on ${PORT}`)})
+app.listen(PORT, () => { console.log(`App is running on ${PORT}`) })

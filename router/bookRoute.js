@@ -1,5 +1,5 @@
 import express from 'express'
-import { addNewBook, allNotification, bookCategories, bookSearch, clearNotification, deleteBook, featuredBooks, getBookDetails, getUserBooks, likeBook, myFavoriteBooks, updateBook } from '../controller/bookController.js';
+import { addNewBook, allNotification, bookCategories, bookSearch, categoryBooks, clearNotification, deleteBook, featuredBooks, getBookDetails, getUserBooks, likeBook, myFavoriteBooks, updateBook } from '../controller/bookController.js';
 import authMiddleWare from '../middleWare/authMiddleware.js';
 
 
@@ -16,6 +16,7 @@ bookRoute.patch("/clearNotes",authMiddleWare,clearNotification)
 
 bookRoute.get("/featured",featuredBooks)
 bookRoute.get("/categories",bookCategories)
+bookRoute.get("/categoryBooks/:categoryName",categoryBooks)
 
 bookRoute.get("/search",bookSearch)
 bookRoute.get("/:id",getBookDetails)

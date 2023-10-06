@@ -1,7 +1,7 @@
 import bookModel from "../model/bookModel.js";
 import userModel from "../model/userModel.js";
 import cloudinary from '../utils/cloudinary.js'
-
+import nodemailer from 'nodemailer'
 
 export const addNewBook = async (req, res) => {
     try {
@@ -35,18 +35,48 @@ export const addNewBook = async (req, res) => {
                 user.Notifications.push({
                     content: notificationContent,
                     userId: userId,
-                    bookId:savedBook._id,
+                    bookId: savedBook._id,
                     date: new Date(),
                 });
                 await user.save();
             }
         }
+        const bookId = savedBook._id
+        const userEmail = userDetails.email
+        sendEmailWithBook(bookId, userEmail)
+
         return res.status(200).json({ message: 'New Book Added', savedBook, success: true });
     } catch (error) {
         console.error('Error adding a new book:', error);
         return res.status(400).json({ message: 'Error book not registered', success: false });
     }
 };
+
+const sendEmailWithBook = async (bookId, userEmail) => {
+    const server = process.env.BOOK_PAGE;
+    const bookPageLink = `${server}/${bookId}`;
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.EMAIL,
+            pass: process.env.NDMILR_PASS,
+        },
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL,
+        to: userEmail,
+        subject: "New Book Release",
+        html: `<p>A new book has been released on BrowsBooks! Click <a href="${bookPageLink}">here</a> to view the book.</p>`,
+    };
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log("Email sent: " + info.response);
+    } catch (error) {
+        console.error("Error sending email:", error);
+    }
+};
+
 export const updateBook = async (req, res) => {
     try {
         const bookId = req.params.id
@@ -81,6 +111,24 @@ export const updateBook = async (req, res) => {
             }
         }
         const updatedBook = await bookModel.findOneAndUpdate({ _id: bookId }, data, { new: true });
+
+        // Send a notification to all users
+        const userId = req.userId
+        const userDetails = await userModel.findById(userId)
+        const allUsers = await userModel.find({});
+        const notificationContent = `${userDetails.name} Updated a book: ${data.title}`;
+        for (const user of allUsers) {
+            if (user._id.toString() !== userId) {
+                user.Notifications.push({
+                    content: notificationContent,
+                    userId: userId,
+                    bookId: updatedBook._id,
+                    date: new Date(),
+                });
+                await user.save();
+            }
+        }
+
         res.status(200).json({ message: 'Book Updated', success: true, updatedBook })
     } catch (error) {
         console.error('Error adding a new book:', error);
@@ -107,6 +155,18 @@ export const bookCategories = async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 }
+export const categoryBooks = async (req, res) => {
+    try {
+        const category = req.params.categoryName;
+        const books = await bookModel.find({ category }); // Use an object to specify the filter
+        res.status(200).json({ books });
+    } catch (error) {
+        console.log(error, 'error on categories');
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+
 export const bookSearch = async (req, res) => {
     try {
         const query = req.query.query;
