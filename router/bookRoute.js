@@ -8,6 +8,7 @@ const bookRoute = express.Router()
 bookRoute.post("/addBook", authMiddleware, addNewBook)
 bookRoute.post("/updateBook/:id",authMiddleware, updateBook)
 bookRoute.delete('/deleteBook/:id',authMiddleware, deleteBook)
+
 bookRoute.get("/myBook",authMiddleware, getUserBooks)
 bookRoute.put("/likeBook/:id",authMiddleware, likeBook)
 bookRoute.get("/myFavoriteBooks",authMiddleware, myFavoriteBooks)
@@ -20,8 +21,6 @@ bookRoute.get("/categoryBooks/:categoryName", categoryBooks)
 
 bookRoute.get("/search", bookSearch)
 bookRoute.get("/:id", getBookDetails)
-
-
 
 
 export default bookRoute;

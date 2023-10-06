@@ -9,7 +9,7 @@ import otpVerificationModel from "../model/OtpVerifyModal.js";
 export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body
-        console.log(req.body,'---input')
+        console.log(req.body, '---input')
         const jwt = pkg;
         const User = await userModel.findOne({ email: email });
         if (User) {
@@ -50,7 +50,6 @@ export const signUpUser = async (req, res, next) => {
             const otpSend = await sendOtpVerificationEmail(saveUser);
             return res.status(200).json({ success: true, message: 'Otp Send Check your email' });
         }
-
     } catch (error) {
         console.log(error, 'signup error');
         return res.status(500).json({ message: 'Error while SignUp' });
@@ -72,7 +71,7 @@ const sendOtpVerificationEmail = async (user) => {
         });
 
         const mailOptions = {
-            from: process.env.EMAIL,
+            from: 'BrowsBooks',
             to: userEmail,
             subject: "Subject",
             text: "Email content",

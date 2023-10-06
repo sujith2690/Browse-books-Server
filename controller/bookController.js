@@ -80,6 +80,7 @@ const sendEmailWithBook = async (bookId, userEmail) => {
 
 export const updateBook = async (req, res) => {
     try {
+        console.log(req.body,'-------update data')
         const bookId = req.params.id
         const bookDetails = await bookModel.findById(bookId)
         if (!bookDetails) {
@@ -92,7 +93,7 @@ export const updateBook = async (req, res) => {
             author: req.body.author,
             price: req.body.price,
         }
-        if (req.body.imageUrl.public_id !== '') {
+        if (req.body.imageUrl.public_id) {
             data.imageUrl = req.body.imageUrl
         } else {
             const newImgId = req.body.imageUrl
@@ -112,7 +113,6 @@ export const updateBook = async (req, res) => {
             }
         }
         const updatedBook = await bookModel.findOneAndUpdate({ _id: bookId }, data, { new: true });
-
         // Send a notification to all users
         const userId = req.userId
         const userDetails = await userModel.findById(userId)
